@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Seite nicht gefunden · StudoX</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #030310;
+      color: #fff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    /* Animated particle canvas */
+    canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Radial glow */
+    .glow-1 {
+      position: fixed;
+      top: 35%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(139,92,246,0.09) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .glow-2 {
+      position: fixed;
+      top: 65%; left: 30%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Grid overlay */
+    .grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(139,92,246,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,92,246,0.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      animation: rise 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+    }
+
+    /* Logo mark */
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #7c3aed, #0891b2);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 900; font-size: 19px;
+      box-shadow: 0 0 24px rgba(139,92,246,0.45);
+    }
+    .logo-name { color: #fff; font-weight: 800; font-size: 17px; }
+    .logo-tld  { color: #6b7280; font-size: 12px; font-weight: 500; margin-left: 1px; }
+
+    /* 404 number */
+    .code {
+      font-size: clamp(96px, 22vw, 160px);
+      font-weight: 900;
+      letter-spacing: -8px;
+      line-height: 0.95;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #fff 0%, #c4b5fd 45%, #67e8f9 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shine 4s linear infinite;
+    }
+
+    .subtitle-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.25);
+      margin-bottom: 24px;
+    }
+    .subtitle-badge span { color: #c4b5fd; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; }
+
+    h1 {
+      font-size: clamp(22px, 4.5vw, 34px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+    p {
+      color: #6b7280;
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 400px;
+      margin: 0 auto 36px;
+    }
+
+    .links {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 13px 28px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-3px) scale(1.02); }
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #0891b2);
+      color: #fff;
+      box-shadow: 0 0 30px rgba(139,92,246,0.35);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #9ca3af;
+    }
+    .btn-rose {
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.25);
+      color: #fda4af;
+    }
+
+    /* Platform pills at bottom */
+    .platforms {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid;
+      transition: opacity 0.2s;
+      opacity: 0.55;
+    }
+    .pill:hover { opacity: 1; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shine {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(22px) rotate(0deg); }
+      to   { transform: rotate(360deg) translateX(22px) rotate(-360deg); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  <div class="grid"></div>
+
+  <div class="content">
+    <!-- Logo -->
+    <a href="/" class="logo">
+      <div class="logo-icon">S</div>
+      <span class="logo-name">StudoX</span>
+      <span class="logo-tld">.eu</span>
+    </a>
+
+    <!-- 404 -->
+    <div class="code">404</div>
+
+    <div class="subtitle-badge">
+      <span>🔭 SEITE NICHT GEFUNDEN</span>
+    </div>
+
+    <h1>Du hast dich<br/>verloren im Universum.</h1>
+    <p>Diese Seite existiert nicht — aber dein Lernweg schon.<br>Finde zurück und mach weiter wo du aufgehört hast.</p>
+
+    <div class="links">
+      <a href="/" class="btn btn-primary">← Zurück zur Startseite</a>
+      <a href="https://flow.studox.eu" class="btn btn-ghost">🎓 Zu StudoX Flow</a>
+    </div>
+
+    <!-- Platform pills -->
+    <div class="platforms">
+      <a href="https://studox.info" class="pill" style="color:#c4b5fd; border-color:rgba(139,92,246,0.3); background:rgba(139,92,246,0.08)">🎮 studox.info</a>
+      <a href="https://flow.studox.eu" class="pill" style="color:#c4b5fd; border-color:rgba(139,92,246,0.25); background:rgba(139,92,246,0.06)">🎓 Flow</a>
+      <a href="https://clubs.studox.eu" class="pill" style="color:#6ee7b7; border-color:rgba(16,185,129,0.25); background:rgba(16,185,129,0.06)">🏛️ Clubs</a>
+      <a href="https://core.studox.eu" class="pill" style="color:#67e8f9; border-color:rgba(6,182,212,0.25); background:rgba(6,182,212,0.06)">⚡ Core</a>
+      <a href="https://studox.org" class="pill" style="color:#fda4af; border-color:rgba(244,63,94,0.25); background:rgba(244,63,94,0.06)">❤️ Impact</a>
+    </div>
+  </div>
+
+  <script>
+    // Particle field — matches main site
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+    let raf;
+    const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
+    resize(); window.addEventListener('resize', resize);
+    const pts = Array.from({ length: 70 }, () => ({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
+      r: Math.random() * 1.4 + 0.3,
+      hue: 255 + Math.random() * 40,
+      a: Math.random() * 0.4 + 0.08,
+      vy: -(Math.random() * 0.14 + 0.03),
+    }));
+    const draw = () => {
+      ctx.clearRect(0, 0, c.width, c.height);
+      pts.forEach(p => {
+        p.y += p.vy;
+        if (p.y < 0) { p.y = c.height; p.x = Math.random() * c.width; }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue},70%,75%,${p.a})`;
+        ctx.fill();
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+  </script>
+</body>
+</html>

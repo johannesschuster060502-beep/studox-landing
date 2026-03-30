@@ -3,6 +3,7 @@
  * Cinematic entry experience. Immersive, revealing, unforgettable.
  */
 import { useState, useEffect, useRef } from "react";
+import ThreeBackground from "./ThreeBackground";
 
 const CORE_URL = "https://core.studox.eu";
 const INFO_URL = "https://studox.info";
@@ -278,54 +279,25 @@ export default function App() {
         a { color: inherit; text-decoration: none; }
       `}</style>
 
-      {/* ── Background layers ────────────────────────────────────────────── */}
-      <NebulaCanvas phase={phase} />
+      {/* ── 3D WebGL Background ──────────────────────────────────────────── */}
+      <ThreeBackground phase={phase} warp={phase >= 6} />
 
-      {/* Nebula orbs */}
-      <div style={{
-        position: "fixed", top: "-20%", left: "-10%", width: "60vw", height: "60vw",
-        borderRadius: "50%", pointerEvents: "none", zIndex: 1,
-        background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
-        opacity: phase >= 1 ? 1 : 0, transition: "opacity 2s ease",
-      }} />
-      <div style={{
-        position: "fixed", bottom: "-15%", right: "-5%", width: "50vw", height: "50vw",
-        borderRadius: "50%", pointerEvents: "none", zIndex: 1,
-        background: "radial-gradient(circle, rgba(6,182,212,0.09) 0%, transparent 70%)",
-        opacity: phase >= 1 ? 1 : 0, transition: "opacity 2s ease 0.5s",
-      }} />
-      <div style={{
-        position: "fixed", top: "30%", left: "40%", width: "40vw", height: "40vw",
-        borderRadius: "50%", pointerEvents: "none", zIndex: 1,
-        background: "radial-gradient(circle, rgba(192,132,252,0.07) 0%, transparent 70%)",
-        opacity: phase >= 2 ? 1 : 0, transition: "opacity 1.5s ease",
-      }} />
-
-      {/* Grid overlay */}
+      {/* Radial vignette — soft edge darkening to keep text readable */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 2,
-        backgroundImage: "linear-gradient(rgba(139,92,246,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.045) 1px, transparent 1px)",
-        backgroundSize: "60px 60px",
-        opacity: phase >= 1 ? 1 : 0, transition: "opacity 1.5s ease",
+        background: "radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(3,3,16,0.55) 100%)",
       }} />
 
-      {/* Radial vignette */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 2,
-        background: "radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(3,3,16,0.75) 100%)",
-      }} />
-
-      {/* Horizontal scanline */}
+      {/* Top + bottom accent lines */}
       <div style={{
         position: "fixed", top: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.6) 30%, rgba(6,182,212,0.6) 70%, transparent 100%)",
-        zIndex: 3,
+        background: "linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.7) 30%, rgba(6,182,212,0.7) 70%, transparent 100%)",
+        zIndex: 3, boxShadow: "0 0 20px rgba(139,92,246,0.5)",
         opacity: phase >= 2 ? 1 : 0, transition: "opacity 0.8s ease",
-        boxShadow: "0 0 20px rgba(139,92,246,0.4)",
       }} />
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0, height: "1px",
-        background: "linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.3) 30%, rgba(6,182,212,0.3) 70%, transparent 100%)",
+        background: "linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.4) 30%, rgba(6,182,212,0.4) 70%, transparent 100%)",
         zIndex: 3,
         opacity: phase >= 2 ? 1 : 0, transition: "opacity 0.8s ease 0.3s",
       }} />

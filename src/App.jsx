@@ -1,42 +1,49 @@
 /**
- * StudoX — The Landing Page
- * Mysterious. Confident. Makes you need to try it.
+ * StudoX — The Landing Page  ///  Triple A+++ Masterpiece
+ * Mysterious. Confident. Makes you NEED to try it.
  * Scroll-driven marketing experience with immersive reveals.
+ * Three.js cosmic scene visible throughout — never solid dark.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ThreeBackground from "./ThreeBackground";
 
 const CORE_URL = "https://core.studox.eu";
 const INFO_URL = "https://studox.info";
 
 const WORLDS = [
-  { id: "core",   name: "Core",   tag: "Das Zentrum",         color: "#8b5cf6", rgb: "139,92,246",  url: "https://core.studox.eu"   },
-  { id: "cinema", name: "Cinema", tag: "Wissen in Bewegung",  color: "#f59e0b", rgb: "245,158,11",  url: "https://cinema.studox.eu" },
-  { id: "create", name: "Create", tag: "Erschaffe & teile",   color: "#eab308", rgb: "234,179,8",   url: "https://create.studox.eu" },
-  { id: "flow",   name: "Flow",   tag: "Gamifiziertes Lernen",color: "#10b981", rgb: "16,185,129",  url: "https://flow.studox.eu"   },
-  { id: "clubs",  name: "Clubs",  tag: "Deine Community",     color: "#f43f5e", rgb: "244,63,94",   url: "https://clubs.studox.eu"  },
-  { id: "info",   name: "Info",   tag: "Das große Bild",      color: "#06b6d4", rgb: "6,182,212",   url: "https://studox.info"      },
+  { id: "core",   name: "Core",   tag: "Das Zentrum",         color: "#8b5cf6", rgb: "139,92,246",  icon: "◆", url: "https://core.studox.eu"   },
+  { id: "cinema", name: "Cinema", tag: "Wissen in Bewegung",  color: "#f59e0b", rgb: "245,158,11",  icon: "▶", url: "https://cinema.studox.eu" },
+  { id: "create", name: "Create", tag: "Erschaffe & teile",   color: "#eab308", rgb: "234,179,8",   icon: "✦", url: "https://create.studox.eu" },
+  { id: "flow",   name: "Flow",   tag: "Gamifiziertes Lernen",color: "#10b981", rgb: "16,185,129",  icon: "⚡", url: "https://flow.studox.eu"   },
+  { id: "clubs",  name: "Clubs",  tag: "Deine Community",     color: "#f43f5e", rgb: "244,63,94",   icon: "●", url: "https://clubs.studox.eu"  },
+  { id: "info",   name: "Info",   tag: "Das große Bild",      color: "#06b6d4", rgb: "6,182,212",   icon: "∞", url: "https://studox.info"      },
 ];
 
 const QUALITIES = [
   {
     title: "Gamifiziert. Bis ins letzte Detail.",
     body: "XP. Quests. Duelle. Level-Ups. Nicht als Gimmick — als Grundprinzip. Jeder Fortschritt wird sichtbar, jeder Schritt zählt.",
+    accent: "#8b5cf6",
+    rgb: "139,92,246",
   },
   {
     title: "Intelligent. Nicht nur digital.",
     body: "KI die versteht, wie du lernst. Nicht nur was. Ein System das sich anpasst — nicht umgekehrt.",
+    accent: "#06b6d4",
+    rgb: "6,182,212",
   },
   {
     title: "Gebaut für eine ganze Generation.",
     body: "Pan-Europäisch. Kostenlos für Schüler. Für Schulen, Institutionen und alle die glauben, dass Bildung keine Frage des Geldbeutels sein darf.",
+    accent: "#10b981",
+    rgb: "16,185,129",
   },
 ];
 
 const STATS = [
-  { value: "6+",   label: "Apps im Ökosystem" },
-  { value: "EU",   label: "Pan-Europäisch" },
-  { value: "100%", label: "Kostenlos für Schüler" },
+  { value: "6+",   label: "Apps im Ökosystem",      accent: "#8b5cf6", rgb: "139,92,246" },
+  { value: "EU",   label: "Pan-Europäisch",          accent: "#06b6d4", rgb: "6,182,212"  },
+  { value: "100%", label: "Kostenlos für Schüler",   accent: "#10b981", rgb: "16,185,129" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -44,6 +51,8 @@ const STATS = [
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [bgReady, setBgReady] = useState(false);
+  const spotlightRef = useRef(null);
+  const mouseRef = useRef({ x: 0.5, y: 0.5 });
 
   /* Fade in Three.js background */
   useEffect(() => {
@@ -58,6 +67,20 @@ export default function App() {
     return () => window.removeEventListener("scroll", h);
   }, []);
 
+  /* Mouse-following spotlight */
+  const onMouseMove = useCallback((e) => {
+    mouseRef.current.x = e.clientX / window.innerWidth;
+    mouseRef.current.y = e.clientY / window.innerHeight;
+    if (spotlightRef.current) {
+      spotlightRef.current.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(139,92,246,0.06), transparent 60%)`;
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMouseMove);
+  }, [onMouseMove]);
+
   /* IntersectionObserver — reveal elements on scroll */
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -68,7 +91,7 @@ export default function App() {
             obs.unobserve(e.target);
           }
         }),
-      { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
     );
     document.querySelectorAll(".sx-reveal").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
@@ -78,7 +101,6 @@ export default function App() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#030310",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
         color: "#fff",
         overflowX: "hidden",
@@ -93,36 +115,42 @@ export default function App() {
 
         /* Hero entrance — staggered fade-up */
         @keyframes sx-hero-in {
-          from { opacity: 0; transform: translateY(32px); filter: blur(4px); }
-          to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+          from { opacity: 0; transform: translateY(36px) scale(0.97); filter: blur(6px); }
+          to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
-        .hero-badge  { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both; }
-        .hero-title  { animation: sx-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 0.8s both; }
-        .hero-sub    { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 1.1s both; }
-        .hero-cta    { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 1.4s both; }
-        .hero-scroll { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 2.2s both; }
+        .hero-badge  { animation: sx-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s both; }
+        .hero-title  { animation: sx-hero-in 1.0s cubic-bezier(0.16,1,0.3,1) 0.7s both; }
+        .hero-sub    { animation: sx-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 1.0s both; }
+        .hero-cta    { animation: sx-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 1.3s both; }
+        .hero-scroll { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 2.0s both; }
 
         /* Scroll reveal system */
         .sx-reveal {
           opacity: 0;
-          transform: translateY(44px);
-          transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1),
-                      transform 0.9s cubic-bezier(0.16,1,0.3,1);
+          transform: translateY(48px);
+          transition: opacity 1.0s cubic-bezier(0.16,1,0.3,1),
+                      transform 1.0s cubic-bezier(0.16,1,0.3,1);
         }
         .sx-reveal.sx-in {
           opacity: 1;
           transform: none;
         }
-        .sx-d1 { transition-delay: 0.07s; }
-        .sx-d2 { transition-delay: 0.14s; }
-        .sx-d3 { transition-delay: 0.21s; }
-        .sx-d4 { transition-delay: 0.28s; }
-        .sx-d5 { transition-delay: 0.35s; }
-        .sx-d6 { transition-delay: 0.42s; }
+        .sx-d1 { transition-delay: 0.08s; }
+        .sx-d2 { transition-delay: 0.16s; }
+        .sx-d3 { transition-delay: 0.24s; }
+        .sx-d4 { transition-delay: 0.32s; }
+        .sx-d5 { transition-delay: 0.40s; }
+        .sx-d6 { transition-delay: 0.48s; }
 
-        /* Gradient text */
+        /* Gradient text variants */
         .sx-grad {
-          background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #67e8f9 100%);
+          background: linear-gradient(135deg, #fff 0%, #c4b5fd 45%, #67e8f9 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .sx-grad-warm {
+          background: linear-gradient(135deg, #fde68a 0%, #f59e0b 50%, #c4b5fd 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -137,40 +165,94 @@ export default function App() {
         /* Breathing for live dot */
         @keyframes sx-pulse {
           0%, 100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
-          50%      { opacity: 0.5; box-shadow: 0 0 16px #10b981; }
+          50%      { opacity: 0.5; box-shadow: 0 0 18px #10b981; }
+        }
+
+        /* Floating ambient orbs */
+        @keyframes sx-float-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33%      { transform: translate(30px, -20px) scale(1.1); }
+          66%      { transform: translate(-15px, 15px) scale(0.95); }
+        }
+        @keyframes sx-float-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25%      { transform: translate(-25px, 30px) scale(1.05); }
+          50%      { transform: translate(20px, -10px) scale(0.9); }
+          75%      { transform: translate(-10px, -25px) scale(1.08); }
+        }
+        @keyframes sx-float-3 {
+          0%, 100% { transform: translate(0, 0); }
+          50%      { transform: translate(15px, -30px); }
+        }
+
+        /* Glow line animation */
+        @keyframes sx-glow-slide {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+
+        /* Shimmer effect */
+        @keyframes sx-shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+
+        /* Border glow pulse */
+        @keyframes sx-border-glow {
+          0%, 100% { opacity: 0.3; }
+          50%      { opacity: 0.7; }
         }
 
         /* Responsive grids */
         .sx-worlds-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          max-width: 620px;
+          gap: 14px;
+          max-width: 680px;
+          width: 100%;
+        }
+        .sx-qualities-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          max-width: 960px;
           width: 100%;
         }
         .sx-stats-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-          max-width: 540px;
+          gap: 24px;
+          max-width: 620px;
           width: 100%;
+        }
+        @media (max-width: 768px) {
+          .sx-qualities-grid { grid-template-columns: 1fr; gap: 16px; max-width: 480px; }
         }
         @media (max-width: 640px) {
           .sx-worlds-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
         @media (max-width: 480px) {
-          .sx-stats-grid { gap: 12px; }
+          .sx-stats-grid { gap: 14px; }
         }
       `}</style>
 
-      {/* ── THREE.JS BACKGROUND (fixed, cosmic) ──────────────────────── */}
+      {/* ── THREE.JS BACKGROUND (fixed, cosmic — visible EVERYWHERE) ── */}
       <ThreeBackground phase={bgReady ? 5 : 0} warp={false} />
+
+      {/* ── MOUSE-FOLLOWING SPOTLIGHT ─────────────────────────────── */}
+      <div
+        ref={spotlightRef}
+        style={{
+          position: "fixed", inset: 0, zIndex: 2, pointerEvents: "none",
+          transition: "background 0.3s ease",
+        }}
+      />
 
       {/* ── VIGNETTE ─────────────────────────────────────────────────── */}
       <div
         style={{
           position: "fixed", inset: 0, zIndex: 1, pointerEvents: "none",
-          background: "radial-gradient(ellipse at 50% 25%, transparent 15%, rgba(3,3,16,0.65) 100%)",
+          background: "radial-gradient(ellipse at 50% 25%, transparent 20%, rgba(3,3,16,0.55) 100%)",
         }}
       />
 
@@ -179,7 +261,7 @@ export default function App() {
         style={{
           position: "fixed", top: 0, left: 0, right: 0, height: 1, zIndex: 51,
           background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.5) 30%, rgba(6,182,212,0.5) 70%, transparent)",
-          boxShadow: "0 0 18px rgba(139,92,246,0.3)",
+          boxShadow: "0 0 20px rgba(139,92,246,0.3), 0 0 60px rgba(139,92,246,0.1)",
         }}
       />
 
@@ -189,33 +271,41 @@ export default function App() {
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
           padding: "14px 24px",
           display: "flex", justifyContent: "space-between", alignItems: "center",
-          background: scrolled ? "rgba(3,3,16,0.92)" : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
-          WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? "1px solid rgba(139,92,246,0.08)" : "1px solid transparent",
-          transition: "all 0.35s ease",
+          background: scrolled ? "rgba(3,3,16,0.88)" : "transparent",
+          backdropFilter: scrolled ? "blur(24px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(24px) saturate(1.4)" : "none",
+          borderBottom: scrolled ? "1px solid rgba(139,92,246,0.1)" : "1px solid transparent",
+          transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
-        <span style={{ fontWeight: 900, fontSize: 17, letterSpacing: "-0.03em", color: "#e5e7eb" }}>
+        <span style={{
+          fontWeight: 900, fontSize: 18, letterSpacing: "-0.04em", color: "#e5e7eb",
+          textShadow: "0 0 30px rgba(139,92,246,0.3)",
+        }}>
           StudoX
         </span>
         <a
           href={CORE_URL}
           style={{
-            padding: "7px 18px", borderRadius: 9,
-            background: "rgba(139,92,246,0.1)",
+            padding: "8px 20px", borderRadius: 10,
+            background: "rgba(139,92,246,0.08)",
             border: "1px solid rgba(139,92,246,0.2)",
             fontSize: 12, fontWeight: 700, color: "#c4b5fd",
             letterSpacing: "0.01em",
-            transition: "all 0.25s ease",
+            backdropFilter: "blur(12px)",
+            transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(139,92,246,0.2)";
+            e.currentTarget.style.background = "rgba(139,92,246,0.18)";
             e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)";
+            e.currentTarget.style.boxShadow = "0 4px 20px rgba(139,92,246,0.2)";
+            e.currentTarget.style.transform = "translateY(-1px)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(139,92,246,0.1)";
+            e.currentTarget.style.background = "rgba(139,92,246,0.08)";
             e.currentTarget.style.borderColor = "rgba(139,92,246,0.2)";
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.transform = "";
           }}
         >
           Ins System &rarr;
@@ -243,9 +333,10 @@ export default function App() {
             className="hero-badge"
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "6px 16px", borderRadius: 100, marginBottom: 28,
-              background: "rgba(139,92,246,0.08)",
-              border: "1px solid rgba(139,92,246,0.2)",
+              padding: "6px 18px", borderRadius: 100, marginBottom: 32,
+              background: "rgba(139,92,246,0.06)",
+              border: "1px solid rgba(139,92,246,0.18)",
+              backdropFilter: "blur(12px)",
             }}
           >
             <div style={{
@@ -254,7 +345,7 @@ export default function App() {
               animation: "sx-pulse 2s ease-in-out infinite",
             }} />
             <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
               textTransform: "uppercase", color: "rgba(196,181,253,0.8)",
             }}>
               Das nächste Kapitel
@@ -263,31 +354,33 @@ export default function App() {
 
           {/* Headline */}
           <h1
-            className="hero-title sx-grad"
+            className="hero-title"
             style={{
-              fontSize: "clamp(36px, 8vw, 72px)",
+              fontSize: "clamp(38px, 8.5vw, 78px)",
               fontWeight: 900,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.08,
-              marginBottom: 20,
-              maxWidth: 700,
+              letterSpacing: "-0.045em",
+              lineHeight: 1.06,
+              marginBottom: 22,
+              maxWidth: 740,
             }}
           >
-            Vergiss alles, was du
-            <br />
-            über Lernen weißt.
+            <span className="sx-grad">
+              Vergiss alles, was du
+              <br />
+              über Lernen weißt.
+            </span>
           </h1>
 
           {/* Subtitle */}
           <p
             className="hero-sub"
             style={{
-              fontSize: "clamp(15px, 2.5vw, 19px)",
+              fontSize: "clamp(15px, 2.5vw, 20px)",
               fontWeight: 400,
               color: "rgba(196,181,253,0.55)",
               lineHeight: 1.6,
-              maxWidth: 440,
-              marginBottom: 36,
+              maxWidth: 460,
+              marginBottom: 40,
             }}
           >
             Ein Ökosystem das Regeln bricht.
@@ -301,20 +394,22 @@ export default function App() {
             href={CORE_URL}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "15px 34px", borderRadius: 13,
+              padding: "16px 38px", borderRadius: 14,
               background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
               color: "#fff", fontSize: 15, fontWeight: 800,
               letterSpacing: "-0.01em",
-              boxShadow: "0 8px 32px rgba(139,92,246,0.3), 0 0 0 1px rgba(139,92,246,0.3)",
-              transition: "transform 0.25s ease, box-shadow 0.25s ease",
+              boxShadow: "0 8px 36px rgba(139,92,246,0.35), 0 0 0 1px rgba(139,92,246,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+              transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+              position: "relative",
+              overflow: "hidden",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 14px 44px rgba(139,92,246,0.4), 0 0 0 1px rgba(139,92,246,0.4)";
+              e.currentTarget.style.transform = "translateY(-3px) scale(1.02)";
+              e.currentTarget.style.boxShadow = "0 16px 52px rgba(139,92,246,0.45), 0 0 0 1px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.15)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "";
-              e.currentTarget.style.boxShadow = "0 8px 32px rgba(139,92,246,0.3), 0 0 0 1px rgba(139,92,246,0.3)";
+              e.currentTarget.style.boxShadow = "0 8px 36px rgba(139,92,246,0.35), 0 0 0 1px rgba(139,92,246,0.3), inset 0 1px 0 rgba(255,255,255,0.1)";
             }}
           >
             Jetzt erleben
@@ -327,7 +422,7 @@ export default function App() {
           <div
             className="hero-scroll"
             style={{
-              position: "absolute", bottom: 32, left: "50%",
+              position: "absolute", bottom: 36, left: "50%",
               transform: "translateX(-50%)",
               animation: "sx-bounce 2.5s ease-in-out infinite",
             }}
@@ -338,72 +433,125 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Gradient transition to dark ─────────────────────────── */}
-        <div style={{ height: 200, background: "linear-gradient(to bottom, transparent, #030310)" }} />
+        {/* ── Cinematic fade transition ─────────────────────────── */}
+        <div style={{
+          height: 240,
+          background: "linear-gradient(to bottom, transparent 0%, rgba(3,3,16,0.4) 40%, rgba(3,3,16,0.65) 100%)",
+        }} />
 
         {/* ════════════════════════════════════════════════════════════
-            STATEMENT — One powerful paragraph
+            STATEMENT — One powerful paragraph, cosmic backdrop visible
             ════════════════════════════════════════════════════════════ */}
         <section
           style={{
-            background: "#030310",
+            background: "rgba(3,3,16,0.55)",
+            backdropFilter: "blur(1px)",
             padding: "clamp(80px, 12vh, 140px) 24px",
             display: "flex", justifyContent: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* Ambient orb — left */}
+          <div style={{
+            position: "absolute", left: "-10%", top: "20%",
+            width: 400, height: 400, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)",
+            animation: "sx-float-1 18s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+          {/* Ambient orb — right */}
+          <div style={{
+            position: "absolute", right: "-8%", bottom: "10%",
+            width: 350, height: 350, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)",
+            animation: "sx-float-2 22s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+
           <p
             className="sx-reveal"
             style={{
-              fontSize: "clamp(20px, 3.5vw, 32px)",
+              fontSize: "clamp(21px, 3.5vw, 34px)",
               fontWeight: 500,
               lineHeight: 1.55,
-              color: "rgba(229,231,235,0.75)",
-              maxWidth: 640,
+              color: "rgba(229,231,235,0.8)",
+              maxWidth: 660,
               textAlign: "center",
               letterSpacing: "-0.02em",
+              position: "relative",
+              zIndex: 1,
             }}
           >
             Wir haben nicht ein weiteres Tool gebaut.
             <br />
-            <span style={{ color: "rgba(196,181,253,0.9)", fontWeight: 600 }}>
+            <span style={{
+              background: "linear-gradient(135deg, rgba(196,181,253,1), rgba(139,92,246,0.9))",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text", fontWeight: 700,
+            }}>
               Wir haben ein Universum erschaffen,
             </span>
             <br />
             in dem Lernen keine Pflicht mehr ist
             {" — "}
-            <span style={{ color: "rgba(103,232,249,0.8)" }}>
+            <span style={{
+              background: "linear-gradient(135deg, rgba(103,232,249,0.95), rgba(6,182,212,0.85))",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text", fontWeight: 600,
+            }}>
               sondern ein Instinkt.
             </span>
           </p>
         </section>
 
-        {/* ── Divider ─────────────────────────────────────────────── */}
+        {/* ── Luminous divider ─────────────────────────────────────── */}
         <div style={{
-          width: 60, height: 1, margin: "0 auto",
-          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.25), transparent)",
-        }} />
+          position: "relative", height: 1, maxWidth: 200, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.35), rgba(6,182,212,0.25), transparent)",
+          boxShadow: "0 0 20px rgba(139,92,246,0.15), 0 0 60px rgba(139,92,246,0.05)",
+        }}>
+          <div style={{
+            position: "absolute", top: -2, left: 0, right: 0, height: 5,
+            background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.1), transparent)",
+            filter: "blur(3px)",
+          }} />
+        </div>
 
         {/* ════════════════════════════════════════════════════════════
-            ECOSYSTEM — Mysterious tease, not explanation
+            ECOSYSTEM — Mysterious tease with glassmorphism cards
             ════════════════════════════════════════════════════════════ */}
         <section
           style={{
-            background: "#030310",
+            background: "rgba(3,3,16,0.5)",
             padding: "clamp(80px, 12vh, 140px) 24px",
             display: "flex", flexDirection: "column", alignItems: "center",
             textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* Large ambient glow behind grid */}
+          <div style={{
+            position: "absolute", left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 700, height: 500, borderRadius: "50%",
+            background: "radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, rgba(6,182,212,0.03) 40%, transparent 70%)",
+            animation: "sx-float-3 15s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+
           {/* Section badge */}
           <div
             className="sx-reveal"
             style={{
-              display: "inline-flex", padding: "5px 14px", borderRadius: 100,
-              background: "rgba(139,92,246,0.06)",
+              display: "inline-flex", padding: "5px 16px", borderRadius: 100,
+              background: "rgba(139,92,246,0.05)",
               border: "1px solid rgba(139,92,246,0.15)",
               fontSize: 10, fontWeight: 700, color: "rgba(196,181,253,0.6)",
-              letterSpacing: "0.1em", textTransform: "uppercase",
-              marginBottom: 24,
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              marginBottom: 26,
+              backdropFilter: "blur(8px)",
             }}
           >
             Ökosystem
@@ -412,11 +560,11 @@ export default function App() {
           <h2
             className="sx-reveal sx-d1"
             style={{
-              fontSize: "clamp(28px, 5.5vw, 48px)",
+              fontSize: "clamp(30px, 6vw, 52px)",
               fontWeight: 900,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.1,
-              marginBottom: 14,
+              letterSpacing: "-0.045em",
+              lineHeight: 1.08,
+              marginBottom: 16,
             }}
           >
             Sechs Welten.
@@ -427,11 +575,11 @@ export default function App() {
           <p
             className="sx-reveal sx-d2"
             style={{
-              fontSize: "clamp(14px, 2vw, 16px)",
-              color: "rgba(156,163,175,0.55)",
-              marginBottom: 48,
-              maxWidth: 400,
-              lineHeight: 1.5,
+              fontSize: "clamp(14px, 2vw, 17px)",
+              color: "rgba(156,163,175,0.6)",
+              marginBottom: 52,
+              maxWidth: 420,
+              lineHeight: 1.55,
             }}
           >
             Jede Welt hat ihre eigene Kraft.
@@ -439,41 +587,56 @@ export default function App() {
             Zusammen sind sie unaufhaltbar.
           </p>
 
-          {/* Worlds grid */}
-          <div className="sx-worlds-grid" style={{ marginBottom: 40 }}>
+          {/* Worlds grid — glassmorphism cards */}
+          <div className="sx-worlds-grid" style={{ marginBottom: 44, position: "relative", zIndex: 1 }}>
             {WORLDS.map((w, i) => (
               <a
                 key={w.id}
                 href={w.url}
                 className={`sx-reveal sx-d${i + 1}`}
                 style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "14px 16px", borderRadius: 13,
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  transition: "all 0.3s ease",
+                  display: "flex", alignItems: "center", gap: 14,
+                  padding: "16px 18px", borderRadius: 16,
+                  background: "rgba(255,255,255,0.025)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = `rgba(${w.rgb},0.3)`;
-                  e.currentTarget.style.background = `rgba(${w.rgb},0.06)`;
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.borderColor = `rgba(${w.rgb},0.35)`;
+                  e.currentTarget.style.background = `rgba(${w.rgb},0.08)`;
+                  e.currentTarget.style.transform = "translateY(-4px) scale(1.02)";
+                  e.currentTarget.style.boxShadow = `0 8px 32px rgba(${w.rgb},0.15), 0 0 0 1px rgba(${w.rgb},0.1)`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
-                  e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.025)";
                   e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <div style={{
-                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-                  background: w.color,
-                  boxShadow: `0 0 10px ${w.color}`,
-                }} />
+                {/* Color dot with glow ring */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: `rgba(${w.rgb},0.12)`,
+                    border: `1px solid rgba(${w.rgb},0.2)`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 14,
+                    color: w.color,
+                    textShadow: `0 0 12px ${w.color}`,
+                  }}>
+                    {w.icon}
+                  </div>
+                </div>
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#e5e7eb", marginBottom: 1 }}>
                     {w.name}
                   </div>
-                  <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(156,163,175,0.5)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(156,163,175,0.5)" }}>
                     {w.tag}
                   </div>
                 </div>
@@ -492,37 +655,120 @@ export default function App() {
           </p>
         </section>
 
-        {/* ── Divider ─────────────────────────────────────────────── */}
+        {/* ── Luminous divider ─────────────────────────────────────── */}
         <div style={{
-          width: 60, height: 1, margin: "0 auto",
-          background: "linear-gradient(90deg, transparent, rgba(6,182,212,0.2), transparent)",
+          position: "relative", height: 1, maxWidth: 180, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(6,182,212,0.3), rgba(139,92,246,0.2), transparent)",
+          boxShadow: "0 0 20px rgba(6,182,212,0.12)",
         }} />
 
         {/* ════════════════════════════════════════════════════════════
-            QUALITIES — Three powerful statements
+            QUALITIES — Glassmorphism cards with accent borders
             ════════════════════════════════════════════════════════════ */}
         <section
           style={{
-            background: "#030310",
-            padding: "clamp(80px, 10vh, 120px) 24px",
+            background: "rgba(3,3,16,0.45)",
+            padding: "clamp(80px, 12vh, 140px) 24px",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <div style={{ maxWidth: 560, margin: "0 auto" }}>
+          {/* Ambient orbs */}
+          <div style={{
+            position: "absolute", right: "-15%", top: "30%",
+            width: 500, height: 500, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 60%)",
+            animation: "sx-float-2 20s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+          <div style={{
+            position: "absolute", left: "-12%", bottom: "15%",
+            width: 400, height: 400, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 60%)",
+            animation: "sx-float-1 25s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+
+          <div
+            className="sx-reveal"
+            style={{
+              display: "inline-flex", padding: "5px 16px", borderRadius: 100,
+              background: "rgba(139,92,246,0.05)",
+              border: "1px solid rgba(139,92,246,0.12)",
+              fontSize: 10, fontWeight: 700, color: "rgba(196,181,253,0.55)",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              marginBottom: 26,
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            Prinzipien
+          </div>
+
+          <h2
+            className="sx-reveal sx-d1"
+            style={{
+              fontSize: "clamp(28px, 5vw, 44px)",
+              fontWeight: 900,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+              marginBottom: 52,
+              textAlign: "center",
+            }}
+          >
+            Warum alles anders ist.
+          </h2>
+
+          <div className="sx-qualities-grid" style={{ position: "relative", zIndex: 1 }}>
             {QUALITIES.map((q, i) => (
               <div
                 key={i}
-                className="sx-reveal"
+                className={`sx-reveal sx-d${i + 1}`}
                 style={{
-                  textAlign: "center",
-                  marginBottom: i < QUALITIES.length - 1 ? "clamp(64px, 10vh, 100px)" : 0,
+                  padding: "32px 28px",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  position: "relative",
+                  overflow: "hidden",
+                  transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(${q.rgb},0.25)`;
+                  e.currentTarget.style.background = `rgba(${q.rgb},0.04)`;
+                  e.currentTarget.style.transform = "translateY(-4px)";
+                  e.currentTarget.style.boxShadow = `0 12px 40px rgba(${q.rgb},0.1)`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                  e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
+                {/* Top accent line */}
+                <div style={{
+                  position: "absolute", top: 0, left: "20%", right: "20%", height: 1,
+                  background: `linear-gradient(90deg, transparent, ${q.accent}, transparent)`,
+                  opacity: 0.4,
+                }} />
+
+                {/* Accent glow corner */}
+                <div style={{
+                  position: "absolute", top: -40, right: -40,
+                  width: 120, height: 120, borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(${q.rgb},0.08) 0%, transparent 70%)`,
+                  pointerEvents: "none",
+                }} />
+
                 <h3
                   style={{
-                    fontSize: "clamp(22px, 4vw, 32px)",
-                    fontWeight: 900,
+                    fontSize: "clamp(19px, 3vw, 23px)",
+                    fontWeight: 800,
                     letterSpacing: "-0.03em",
-                    lineHeight: 1.15,
+                    lineHeight: 1.2,
                     marginBottom: 14,
                     color: "#f0eef5",
                   }}
@@ -531,12 +777,10 @@ export default function App() {
                 </h3>
                 <p
                   style={{
-                    fontSize: "clamp(14px, 2vw, 16px)",
+                    fontSize: "clamp(13px, 1.8vw, 15px)",
                     fontWeight: 400,
-                    color: "rgba(156,163,175,0.55)",
-                    lineHeight: 1.6,
-                    maxWidth: 440,
-                    margin: "0 auto",
+                    color: "rgba(156,163,175,0.6)",
+                    lineHeight: 1.65,
                   }}
                 >
                   {q.body}
@@ -546,37 +790,81 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Divider ─────────────────────────────────────────────── */}
+        {/* ── Luminous divider ─────────────────────────────────────── */}
         <div style={{
-          width: 60, height: 1, margin: "0 auto",
-          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.2), transparent)",
+          position: "relative", height: 1, maxWidth: 160, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.25), rgba(139,92,246,0.2), transparent)",
+          boxShadow: "0 0 20px rgba(16,185,129,0.1)",
         }} />
 
         {/* ════════════════════════════════════════════════════════════
-            STATS — Three big numbers
+            STATS — Three big numbers with glow cards
             ════════════════════════════════════════════════════════════ */}
         <section
           style={{
-            background: "#030310",
+            background: "rgba(3,3,16,0.45)",
             padding: "clamp(80px, 12vh, 140px) 24px",
-            display: "flex", justifyContent: "center",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            position: "relative",
           }}
         >
-          <div className="sx-stats-grid">
+          {/* Background glow */}
+          <div style={{
+            position: "absolute", left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 600, height: 300, borderRadius: "50%",
+            background: "radial-gradient(ellipse, rgba(139,92,246,0.05) 0%, transparent 60%)",
+            pointerEvents: "none",
+          }} />
+
+          <div className="sx-stats-grid" style={{ position: "relative", zIndex: 1 }}>
             {STATS.map((s, i) => (
               <div
                 key={i}
                 className={`sx-reveal sx-d${i + 1}`}
-                style={{ textAlign: "center" }}
+                style={{
+                  textAlign: "center",
+                  padding: "36px 20px",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(12px)",
+                  position: "relative",
+                  overflow: "hidden",
+                  transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(${s.rgb},0.25)`;
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow = `0 8px 32px rgba(${s.rgb},0.1)`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+                  e.currentTarget.style.transform = "";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
+                {/* Glow background for number */}
+                <div style={{
+                  position: "absolute", top: "30%", left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 100, height: 80, borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(${s.rgb},0.1) 0%, transparent 70%)`,
+                  pointerEvents: "none",
+                }} />
+
                 <div
-                  className="sx-grad"
                   style={{
                     fontSize: "clamp(36px, 7vw, 56px)",
                     fontWeight: 900,
                     letterSpacing: "-0.04em",
                     lineHeight: 1,
-                    marginBottom: 8,
+                    marginBottom: 10,
+                    position: "relative",
+                    background: `linear-gradient(135deg, #fff 20%, ${s.accent} 80%)`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
                   }}
                 >
                   {s.value}
@@ -584,9 +872,10 @@ export default function App() {
                 <div
                   style={{
                     fontSize: 11, fontWeight: 600,
-                    color: "rgba(156,163,175,0.45)",
+                    color: "rgba(156,163,175,0.5)",
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
+                    position: "relative",
                   }}
                 >
                   {s.label}
@@ -597,64 +886,157 @@ export default function App() {
         </section>
 
         {/* ════════════════════════════════════════════════════════════
-            FINAL CTA — The closer
+            TESTIMONIAL / BOLD STATEMENT
             ════════════════════════════════════════════════════════════ */}
         <section
           style={{
-            background: "#030310",
+            background: "rgba(3,3,16,0.4)",
+            padding: "clamp(60px, 10vh, 120px) 24px",
+            display: "flex", justifyContent: "center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(180deg, transparent 0%, rgba(139,92,246,0.03) 50%, transparent 100%)",
+            pointerEvents: "none",
+          }} />
+
+          <div
+            className="sx-reveal"
+            style={{
+              maxWidth: 580, textAlign: "center",
+              position: "relative", zIndex: 1,
+            }}
+          >
+            <div style={{
+              fontSize: "clamp(44px, 10vw, 80px)",
+              lineHeight: 1,
+              opacity: 0.06,
+              fontWeight: 900,
+              marginBottom: -20,
+              letterSpacing: "-0.04em",
+              color: "#c4b5fd",
+            }}>
+              &ldquo;
+            </div>
+            <p style={{
+              fontSize: "clamp(18px, 3vw, 26px)",
+              fontWeight: 600,
+              lineHeight: 1.5,
+              color: "rgba(229,231,235,0.7)",
+              letterSpacing: "-0.02em",
+              fontStyle: "italic",
+            }}>
+              Stell dir vor, Lernen fühlt sich an wie
+              <span style={{
+                background: "linear-gradient(135deg, #c4b5fd, #8b5cf6)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
+                {" "}dein Lieblingsspiel
+              </span>
+              {" "}— und du wirst trotzdem besser als alle anderen.
+            </p>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════
+            FINAL CTA — The closer, dramatic and glowing
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            background: "rgba(3,3,16,0.4)",
             padding: "clamp(80px, 14vh, 160px) 24px clamp(60px, 10vh, 120px)",
             display: "flex", flexDirection: "column", alignItems: "center",
             textAlign: "center",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
+          {/* Dramatic ambient glow */}
+          <div style={{
+            position: "absolute", left: "50%", top: "40%",
+            transform: "translate(-50%, -50%)",
+            width: 800, height: 600, borderRadius: "50%",
+            background: "radial-gradient(ellipse, rgba(139,92,246,0.07) 0%, rgba(6,182,212,0.03) 30%, transparent 60%)",
+            animation: "sx-float-1 20s ease-in-out infinite",
+            pointerEvents: "none",
+          }} />
+
           <h2
             className="sx-reveal"
             style={{
-              fontSize: "clamp(26px, 5vw, 44px)",
+              fontSize: "clamp(28px, 5.5vw, 48px)",
               fontWeight: 900,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.15,
-              marginBottom: 36,
-              maxWidth: 520,
+              letterSpacing: "-0.045em",
+              lineHeight: 1.12,
+              marginBottom: 20,
+              maxWidth: 560,
               color: "#f0eef5",
+              position: "relative",
             }}
           >
             Die Zukunft der Bildung
             <br />
             ist kein Versprechen.
-            <br />
+          </h2>
+
+          <h2
+            className="sx-reveal sx-d1"
+            style={{
+              fontSize: "clamp(28px, 5.5vw, 48px)",
+              fontWeight: 900,
+              letterSpacing: "-0.045em",
+              lineHeight: 1.12,
+              marginBottom: 44,
+              position: "relative",
+            }}
+          >
             <span className="sx-grad">Sie ist online.</span>
           </h2>
 
           <div
-            className="sx-reveal sx-d1"
+            className="sx-reveal sx-d2"
             style={{
               display: "flex", alignItems: "center", gap: 14,
               flexWrap: "wrap", justifyContent: "center",
+              position: "relative",
             }}
           >
-            {/* Primary CTA */}
+            {/* Primary CTA — with shimmer effect */}
             <a
               href={CORE_URL}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "14px 30px", borderRadius: 13,
+                padding: "16px 34px", borderRadius: 14,
                 background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
                 color: "#fff", fontSize: 15, fontWeight: 800,
-                boxShadow: "0 8px 32px rgba(139,92,246,0.3)",
-                transition: "transform 0.25s, box-shadow 0.25s",
+                boxShadow: "0 10px 40px rgba(139,92,246,0.35), 0 0 0 1px rgba(139,92,246,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+                transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+                position: "relative",
+                overflow: "hidden",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 14px 44px rgba(139,92,246,0.4)";
+                e.currentTarget.style.transform = "translateY(-3px) scale(1.02)";
+                e.currentTarget.style.boxShadow = "0 18px 56px rgba(139,92,246,0.45), 0 0 0 1px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.15)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 8px 32px rgba(139,92,246,0.3)";
+                e.currentTarget.style.boxShadow = "0 10px 40px rgba(139,92,246,0.35), 0 0 0 1px rgba(139,92,246,0.3), inset 0 1px 0 rgba(255,255,255,0.1)";
               }}
             >
-              Ins System
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              {/* Shimmer overlay */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)",
+                backgroundSize: "200% 100%",
+                animation: "sx-shimmer 3s ease-in-out infinite",
+                pointerEvents: "none",
+              }} />
+              <span style={{ position: "relative" }}>Ins System</span>
+              <svg style={{ position: "relative" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </a>
@@ -664,19 +1046,24 @@ export default function App() {
               href={INFO_URL}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "14px 26px", borderRadius: 13,
-                background: "rgba(255,255,255,0.03)",
+                padding: "16px 28px", borderRadius: 14,
+                background: "rgba(255,255,255,0.025)",
                 border: "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(12px)",
                 color: "#9ca3af", fontSize: 14, fontWeight: 600,
-                transition: "all 0.25s",
+                transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+                e.currentTarget.style.borderColor = "rgba(196,181,253,0.25)";
                 e.currentTarget.style.color = "#d1d5db";
+                e.currentTarget.style.background = "rgba(139,92,246,0.06)";
+                e.currentTarget.style.transform = "translateY(-2px)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
                 e.currentTarget.style.color = "#9ca3af";
+                e.currentTarget.style.background = "rgba(255,255,255,0.025)";
+                e.currentTarget.style.transform = "";
               }}
             >
               Mehr erfahren
@@ -685,18 +1072,22 @@ export default function App() {
         </section>
 
         {/* ════════════════════════════════════════════════════════════
-            FOOTER
+            FOOTER — Minimal, elegant
             ════════════════════════════════════════════════════════════ */}
         <footer
           style={{
-            background: "#030310",
+            background: "rgba(3,3,16,0.7)",
             borderTop: "1px solid rgba(255,255,255,0.04)",
-            padding: "32px 24px",
+            padding: "36px 24px",
             display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 20, flexWrap: "wrap",
+            gap: 24, flexWrap: "wrap",
+            backdropFilter: "blur(8px)",
           }}
         >
-          <span style={{ fontSize: 12, fontWeight: 800, color: "#374151", letterSpacing: "-0.02em" }}>
+          <span style={{
+            fontSize: 12, fontWeight: 800, color: "rgba(139,92,246,0.25)",
+            letterSpacing: "-0.02em",
+          }}>
             StudoX
           </span>
           {[
@@ -708,15 +1099,15 @@ export default function App() {
               href={href}
               style={{
                 fontSize: 11, fontWeight: 600, color: "#374151",
-                transition: "color 0.2s",
+                transition: "color 0.25s ease",
               }}
-              onMouseEnter={(e) => (e.target.style.color = "#9ca3af")}
+              onMouseEnter={(e) => (e.target.style.color = "#c4b5fd")}
               onMouseLeave={(e) => (e.target.style.color = "#374151")}
             >
               {label}
             </a>
           ))}
-          <span style={{ fontSize: 10, color: "#1f2937" }}>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.08)" }}>
             © 2026 StudoX. Made in Europe.
           </span>
         </footer>

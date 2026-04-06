@@ -1,815 +1,726 @@
 /**
- * StudoX — The Immersive Gateway
- * Theatrical spotlight reveal -> World portal selection -> Warp entry
- *
- * Phase system:
- *   0  Black void
- *   1  Spotlight beam appears (tiny circle of light)
- *   2  Spotlight expands, Three.js scene revealed
- *   3  "STUDOX" glitch-assembles with chromatic aberration
- *   4  Tagline materializes
- *   5  Portal cards materialize (staggered)
- *   6  Fully interactive — mouse spotlight, breathing
- *   7  Warp exit into chosen world
+ * StudoX — The Landing Page
+ * Mysterious. Confident. Makes you need to try it.
+ * Scroll-driven marketing experience with immersive reveals.
  */
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ThreeBackground from "./ThreeBackground";
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ECOSYSTEM WORLDS
-   ═══════════════════════════════════════════════════════════════════════════ */
+const CORE_URL = "https://core.studox.eu";
+const INFO_URL = "https://studox.info";
+
 const WORLDS = [
-  { id: "core",   name: "Core",   tag: "Das Zentrum",       color: "#8b5cf6", rgb: "139,92,246",  url: "https://core.studox.eu"   },
-  { id: "cinema", name: "Cinema", tag: "Entdecke Wissen",   color: "#f59e0b", rgb: "245,158,11",  url: "https://cinema.studox.eu" },
-  { id: "create", name: "Create", tag: "Erschaffe Inhalte", color: "#eab308", rgb: "234,179,8",   url: "https://create.studox.eu" },
-  { id: "flow",   name: "Flow",   tag: "Lerne smart",       color: "#10b981", rgb: "16,185,129",  url: "https://flow.studox.eu"   },
-  { id: "clubs",  name: "Clubs",  tag: "Deine Community",   color: "#f43f5e", rgb: "244,63,94",   url: "https://clubs.studox.eu"  },
-  { id: "info",   name: "Info",   tag: "Erfahre mehr",      color: "#06b6d4", rgb: "6,182,212",   url: "https://studox.info"      },
+  { id: "core",   name: "Core",   tag: "Das Zentrum",         color: "#8b5cf6", rgb: "139,92,246",  url: "https://core.studox.eu"   },
+  { id: "cinema", name: "Cinema", tag: "Wissen in Bewegung",  color: "#f59e0b", rgb: "245,158,11",  url: "https://cinema.studox.eu" },
+  { id: "create", name: "Create", tag: "Erschaffe & teile",   color: "#eab308", rgb: "234,179,8",   url: "https://create.studox.eu" },
+  { id: "flow",   name: "Flow",   tag: "Gamifiziertes Lernen",color: "#10b981", rgb: "16,185,129",  url: "https://flow.studox.eu"   },
+  { id: "clubs",  name: "Clubs",  tag: "Deine Community",     color: "#f43f5e", rgb: "244,63,94",   url: "https://clubs.studox.eu"  },
+  { id: "info",   name: "Info",   tag: "Das große Bild",      color: "#06b6d4", rgb: "6,182,212",   url: "https://studox.info"      },
 ];
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   WORLD ICONS — Clean minimal SVGs for each portal
-   ═══════════════════════════════════════════════════════════════════════════ */
-function WorldIcon({ id, color = "#fff", size = 28 }) {
-  const p = { width: size, height: size, viewBox: "0 0 32 32", fill: "none" };
-  switch (id) {
-    case "core":
-      return (
-        <svg {...p}>
-          <circle cx="16" cy="16" r="3.5" fill={color} />
-          <ellipse cx="16" cy="16" rx="13" ry="5" stroke={color} strokeWidth="1.2" opacity=".65" />
-          <ellipse cx="16" cy="16" rx="13" ry="5" stroke={color} strokeWidth="1" opacity=".45" transform="rotate(60 16 16)" />
-          <ellipse cx="16" cy="16" rx="13" ry="5" stroke={color} strokeWidth="1" opacity=".45" transform="rotate(-60 16 16)" />
-        </svg>
-      );
-    case "cinema":
-      return (
-        <svg {...p}>
-          <rect x="4" y="6" width="24" height="16" rx="2.5" stroke={color} strokeWidth="1.3" />
-          <polygon points="13,10 22,14 13,18" fill={color} />
-          <line x1="10" y1="26" x2="22" y2="26" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity=".45" />
-        </svg>
-      );
-    case "create":
-      return (
-        <svg {...p}>
-          <path d="M16,3 C17,11 21,15 29,16 C21,17 17,21 16,29 C15,21 11,17 3,16 C11,15 15,11 16,3Z" fill={color} />
-        </svg>
-      );
-    case "flow":
-      return (
-        <svg {...p}>
-          <path d="M18,4 L12,14 H20 L14,28" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case "clubs":
-      return (
-        <svg {...p}>
-          <circle cx="11" cy="11" r="3.5" fill={color} opacity=".65" />
-          <circle cx="21" cy="11" r="3.5" fill={color} />
-          <path d="M4,28 C4,22 7,18 11,18 C13,18 15,19 16,20.5 C17,19 19,18 21,18 C25,18 28,22 28,28" fill={color} opacity=".3" />
-        </svg>
-      );
-    case "info":
-      return (
-        <svg {...p}>
-          <circle cx="16" cy="16" r="12" stroke={color} strokeWidth="1.3" />
-          <circle cx="16" cy="10.5" r="1.5" fill={color} />
-          <line x1="16" y1="15" x2="16" y2="23" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
+const QUALITIES = [
+  {
+    title: "Gamifiziert. Bis ins letzte Detail.",
+    body: "XP. Quests. Duelle. Level-Ups. Nicht als Gimmick — als Grundprinzip. Jeder Fortschritt wird sichtbar, jeder Schritt zählt.",
+  },
+  {
+    title: "Intelligent. Nicht nur digital.",
+    body: "KI die versteht, wie du lernst. Nicht nur was. Ein System das sich anpasst — nicht umgekehrt.",
+  },
+  {
+    title: "Gebaut für eine ganze Generation.",
+    body: "Pan-Europäisch. Kostenlos für Schüler. Für Schulen, Institutionen und alle die glauben, dass Bildung keine Frage des Geldbeutels sein darf.",
+  },
+];
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   PORTAL CARD — Glass morphism + 3D perspective tilt + colored glow
-   ═══════════════════════════════════════════════════════════════════════════ */
-function PortalCard({ world, visible, delay, onSelect, warping }) {
-  const ref = useRef(null);
-  const [hover, setHover] = useState(false);
+const STATS = [
+  { value: "6+",   label: "Apps im Ökosystem" },
+  { value: "EU",   label: "Pan-Europäisch" },
+  { value: "100%", label: "Kostenlos für Schüler" },
+];
 
-  const handleMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(600px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.04)`;
-    el.style.setProperty("--gx", `${(x + 0.5) * 100}%`);
-    el.style.setProperty("--gy", `${(y + 0.5) * 100}%`);
-  }, []);
+/* ═══════════════════════════════════════════════════════════════════════════ */
 
-  const handleLeave = useCallback(() => {
-    const el = ref.current;
-    if (el) el.style.transform = "";
-    setHover(false);
-  }, []);
-
-  const isChosen = warping?.id === world.id;
-
-  return (
-    <button
-      ref={ref}
-      className="sx-card"
-      onClick={() => onSelect(world)}
-      onMouseEnter={() => setHover(true)}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      style={{
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-        width: "100%",
-        borderRadius: 20,
-        background: hover
-          ? `radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(${world.rgb},0.12) 0%, rgba(255,255,255,0.035) 70%)`
-          : "rgba(255,255,255,0.025)",
-        border: `1px solid rgba(${world.rgb}, ${hover ? 0.45 : 0.1})`,
-        boxShadow: isChosen
-          ? `0 0 60px rgba(${world.rgb},0.5), 0 0 120px rgba(${world.rgb},0.2)`
-          : hover
-            ? `0 0 40px rgba(${world.rgb},0.15), 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`
-            : "0 4px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.03)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        cursor: "pointer",
-        outline: "none",
-        color: "#fff",
-        fontFamily: "inherit",
-        overflow: "hidden",
-        opacity: visible ? (warping ? (isChosen ? 1 : 0.3) : 1) : 0,
-        transition: warping
-          ? "opacity 0.4s ease, border-color 0.35s, box-shadow 0.35s, background 0.35s, transform 0.12s"
-          : `border-color 0.35s, box-shadow 0.35s, background 0.35s, opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.12s`,
-      }}
-    >
-      {/* Hover inner glow */}
-      {hover && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 20,
-            pointerEvents: "none",
-            background: `radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(${world.rgb},0.07) 0%, transparent 55%)`,
-          }}
-        />
-      )}
-
-      {/* Icon container */}
-      <div
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: 15,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: `rgba(${world.rgb}, 0.1)`,
-          border: `1px solid rgba(${world.rgb}, 0.2)`,
-          boxShadow: hover ? `0 0 24px rgba(${world.rgb}, 0.25)` : "none",
-          transition: "box-shadow 0.35s",
-          position: "relative",
-          flexShrink: 0,
-        }}
-      >
-        <WorldIcon id={world.id} color={world.color} size={26} />
-      </div>
-
-      {/* Name + tagline */}
-      <div style={{ textAlign: "center" }}>
-        <div
-          style={{
-            fontSize: 15,
-            fontWeight: 800,
-            letterSpacing: "-0.01em",
-            marginBottom: 3,
-            color: hover ? world.color : "#e5e7eb",
-            transition: "color 0.3s",
-          }}
-        >
-          {world.name}
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            color: "rgba(156,163,175,0.6)",
-            letterSpacing: "0.02em",
-          }}
-        >
-          {world.tag}
-        </div>
-      </div>
-
-      {/* Entry hint — visible on hover only */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 5,
-          fontSize: 10,
-          fontWeight: 700,
-          color: hover ? `rgba(${world.rgb},0.8)` : "transparent",
-          transition: "color 0.3s, transform 0.3s",
-          transform: hover ? "translateY(0)" : "translateY(4px)",
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-        }}
-      >
-        Eintauchen
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <path d="M5 12h14M12 5l7 7-7 7" />
-        </svg>
-      </div>
-    </button>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   LOGIN GATE — "Bereit für den Sprung?" auth overlay
-   ═══════════════════════════════════════════════════════════════════════════ */
-function LoginGate({ world, onSkip, onClose }) {
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 200,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(3,3,16,0.85)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
-        animation: "sx-fade-in 0.25s ease",
-        overflowY: "auto",
-        padding: "24px 16px",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "min(400px, 100%)",
-          padding: "36px 28px 28px",
-          borderRadius: 24,
-          background: "rgba(255,255,255,0.03)",
-          border: `1px solid rgba(${world.rgb}, 0.2)`,
-          boxShadow: `0 0 80px rgba(${world.rgb}, 0.1), 0 40px 80px rgba(0,0,0,0.5)`,
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          textAlign: "center",
-          position: "relative",
-          animation: "sx-modal-in 0.35s cubic-bezier(0.16,1,0.3,1)",
-        }}
-      >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute",
-            top: 14,
-            right: 14,
-            width: 30,
-            height: 30,
-            borderRadius: 9,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: "#6b7280",
-            fontFamily: "inherit",
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
-        {/* World icon */}
-        <div
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 17,
-            margin: "0 auto 18px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: `rgba(${world.rgb}, 0.1)`,
-            border: `1px solid rgba(${world.rgb}, 0.22)`,
-            boxShadow: `0 0 30px rgba(${world.rgb}, 0.15)`,
-          }}
-        >
-          <WorldIcon id={world.id} color={world.color} size={28} />
-        </div>
-
-        <h2 style={{ fontSize: 20, fontWeight: 900, marginBottom: 5, color: "#fff", fontFamily: "inherit" }}>
-          StudoX {world.name}
-        </h2>
-        <p style={{ fontSize: 13, color: "rgba(156,163,175,0.65)", marginBottom: 26, lineHeight: 1.5 }}>
-          Melde dich an, um dein Erlebnis
-          <br />
-          zu personalisieren und zu speichern.
-        </p>
-
-        {/* Login CTA */}
-        <button
-          onClick={() => {
-            window.location.href = `https://core.studox.eu?redirect=${encodeURIComponent(world.url)}`;
-          }}
-          style={{
-            width: "100%",
-            padding: "13px 20px",
-            borderRadius: 13,
-            background: `linear-gradient(135deg, ${world.color}, ${world.color}cc)`,
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 800,
-            letterSpacing: "-0.01em",
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            boxShadow: `0 8px 28px rgba(${world.rgb}, 0.3)`,
-            marginBottom: 14,
-            transition: "transform 0.2s, box-shadow 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = `0 12px 36px rgba(${world.rgb}, 0.4)`;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "";
-            e.currentTarget.style.boxShadow = `0 8px 28px rgba(${world.rgb}, 0.3)`;
-          }}
-        >
-          Anmelden / Registrieren
-        </button>
-
-        {/* Skip */}
-        <button
-          onClick={onSkip}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "rgba(156,163,175,0.5)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            transition: "color 0.2s",
-            padding: "6px 0",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#9ca3af")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(156,163,175,0.5)")}
-        >
-          Ohne Anmeldung fortfahren
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   MAIN APP — Theatrical orchestrator
-   ═══════════════════════════════════════════════════════════════════════════ */
 export default function App() {
-  const [phase, setPhase] = useState(0);
-  const [mouse, setMouse] = useState({ x: 0.5, y: 0.5 });
-  const [gate, setGate] = useState(null);
-  const [warping, setWarping] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [bgReady, setBgReady] = useState(false);
 
-  /* ── Phase timeline ──────────────────────────────────────────── */
+  /* Fade in Three.js background */
   useEffect(() => {
-    const t = [
-      setTimeout(() => setPhase(1), 150),   // spotlight beam
-      setTimeout(() => setPhase(2), 700),   // spotlight expands
-      setTimeout(() => setPhase(3), 1500),  // STUDOX glitch-assembles
-      setTimeout(() => setPhase(4), 2400),  // tagline
-      setTimeout(() => setPhase(5), 3000),  // portals materialize
-      setTimeout(() => setPhase(6), 4000),  // fully interactive
-    ];
-    return () => t.forEach(clearTimeout);
+    const t = setTimeout(() => setBgReady(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
-  /* ── Mouse tracking for ambient spotlight ────────────────────── */
+  /* Scroll-aware nav */
   useEffect(() => {
-    const h = (e) =>
-      setMouse({
-        x: e.clientX / window.innerWidth,
-        y: e.clientY / window.innerHeight,
-      });
-    window.addEventListener("mousemove", h);
-    return () => window.removeEventListener("mousemove", h);
+    const h = () => setScrolled(window.scrollY > 80);
+    window.addEventListener("scroll", h, { passive: true });
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
-  /* ── Portal selection ────────────────────────────────────────── */
-  const selectWorld = useCallback((world) => {
-    if (world.id === "info") {
-      doWarp(world);
-    } else {
-      setGate(world);
-    }
+  /* IntersectionObserver — reveal elements on scroll */
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("sx-in");
+            obs.unobserve(e.target);
+          }
+        }),
+      { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }
+    );
+    document.querySelectorAll(".sx-reveal").forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
   }, []);
-
-  /* ── Warp into chosen world ──────────────────────────────────── */
-  const doWarp = useCallback((world) => {
-    setGate(null);
-    setWarping(world);
-    setPhase(7);
-    setTimeout(() => {
-      window.location.href = world.url;
-    }, 1400);
-  }, []);
-
-  /* ── Spotlight scale: 0 -> tiny beam -> expand -> fully open ── */
-  const spotScale =
-    phase === 0 ? 0 : phase === 1 ? 0.03 : phase === 2 ? 0.28 : 1.15;
 
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        minHeight: "100vh",
         background: "#030310",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-        overflow: "hidden",
-        position: "relative",
+        color: "#fff",
+        overflowX: "hidden",
       }}
     >
-      {/* ── STYLES ───────────────────────────────────────────────── */}
+      {/* ── STYLES ───────────────────────────────────────────────────── */}
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #030310; color: #fff; }
+        body { background: #030310; scroll-behavior: smooth; }
         button { cursor: pointer; border: none; outline: none; background: none; }
         a { color: inherit; text-decoration: none; }
 
-        /* Glitch-in: chromatic aberration letter assembly */
-        @keyframes sx-glitch-in {
-          0%   { opacity: 0; transform: translateX(10px) skewX(15deg);
-                 text-shadow: -4px 0 #ff003c, 4px 0 #00d4ff; filter: blur(4px); }
-          18%  { opacity: 1; transform: translateX(-5px) skewX(-8deg);
-                 text-shadow: 3px 0 #ff003c, -3px 0 #00d4ff; filter: blur(1px); }
-          38%  { transform: translateX(3px) skewX(4deg);
-                 text-shadow: -2px 0 #ff003c, 2px 0 #00d4ff; }
-          58%  { transform: translateX(-1px) skewX(-1deg);
-                 text-shadow: 1px 0 #ff003c, -1px 0 #00d4ff; filter: blur(0); }
-          78%  { transform: translateX(0.5px); text-shadow: 0 0 transparent; }
-          100% { opacity: 1; transform: none; text-shadow: none; filter: none; }
+        /* Hero entrance — staggered fade-up */
+        @keyframes sx-hero-in {
+          from { opacity: 0; transform: translateY(32px); filter: blur(4px); }
+          to   { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
+        .hero-badge  { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both; }
+        .hero-title  { animation: sx-hero-in 0.9s cubic-bezier(0.16,1,0.3,1) 0.8s both; }
+        .hero-sub    { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 1.1s both; }
+        .hero-cta    { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 1.4s both; }
+        .hero-scroll { animation: sx-hero-in 0.8s cubic-bezier(0.16,1,0.3,1) 2.2s both; }
 
-        /* Shimmer sweep after assembly */
-        @keyframes sx-shimmer {
-          0%   { background-position: -200% center; }
-          100% { background-position: 200% center; }
+        /* Scroll reveal system */
+        .sx-reveal {
+          opacity: 0;
+          transform: translateY(44px);
+          transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1),
+                      transform 0.9s cubic-bezier(0.16,1,0.3,1);
         }
-        .sx-shimmer {
-          background: linear-gradient(90deg,
-            #c4b5fd 0%, #e9d5ff 18%, #fff 42%,
-            #67e8f9 58%, #e9d5ff 80%, #c4b5fd 100%);
-          background-size: 250% auto;
+        .sx-reveal.sx-in {
+          opacity: 1;
+          transform: none;
+        }
+        .sx-d1 { transition-delay: 0.07s; }
+        .sx-d2 { transition-delay: 0.14s; }
+        .sx-d3 { transition-delay: 0.21s; }
+        .sx-d4 { transition-delay: 0.28s; }
+        .sx-d5 { transition-delay: 0.35s; }
+        .sx-d6 { transition-delay: 0.42s; }
+
+        /* Gradient text */
+        .sx-grad {
+          background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #67e8f9 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: sx-shimmer 5s linear infinite;
         }
 
-        /* Subtle breathing */
-        @keyframes sx-breathe {
-          0%, 100% { transform: scale(1); }
-          50%      { transform: scale(1.012); }
+        /* Scroll indicator bounce */
+        @keyframes sx-bounce {
+          0%, 100% { transform: translateY(0); opacity: 0.5; }
+          50%      { transform: translateY(10px); opacity: 0.3; }
         }
 
-        /* Utilities */
-        @keyframes sx-fade-in  { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes sx-modal-in {
-          from { opacity: 0; transform: scale(0.93) translateY(16px); }
-          to   { opacity: 1; transform: none; }
+        /* Breathing for live dot */
+        @keyframes sx-pulse {
+          0%, 100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+          50%      { opacity: 0.5; box-shadow: 0 0 16px #10b981; }
         }
 
-        /* Warp exit */
-        .sx-warp-out { animation: sx-warp-content 1.4s ease-in forwards !important; }
-        @keyframes sx-warp-content {
-          0%   { filter: blur(0) brightness(1); transform: scale(1); opacity: 1; }
-          35%  { filter: blur(4px) brightness(1.4); transform: scale(1.02); }
-          65%  { filter: blur(10px) brightness(1.8); transform: scale(1.05); opacity: 0.6; }
-          100% { filter: blur(24px) brightness(2.5); transform: scale(1.12); opacity: 0; }
-        }
-        @keyframes sx-warp-flash {
-          0%   { opacity: 0; }
-          70%  { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes sx-warp-glow {
-          0%   { opacity: 0; transform: scale(0.8); }
-          50%  { opacity: 0.6; transform: scale(1.2); }
-          100% { opacity: 0.9; transform: scale(2); }
-        }
-
-        /* Responsive portal grid */
-        .sx-grid {
+        /* Responsive grids */
+        .sx-worlds-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 14px;
+          gap: 12px;
+          max-width: 620px;
           width: 100%;
-          max-width: 680px;
         }
-        .sx-card { padding: 28px 16px 20px; }
-        .sx-card:focus-visible {
-          outline: 2px solid rgba(139,92,246,0.5);
-          outline-offset: 2px;
+        .sx-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          max-width: 540px;
+          width: 100%;
         }
-        @media (max-width: 720px) {
-          .sx-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 400px; }
-          .sx-card { padding: 22px 12px 16px; }
+        @media (max-width: 640px) {
+          .sx-worlds-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
         }
-        @media (max-width: 380px) {
-          .sx-grid { gap: 8px; }
-          .sx-card { padding: 18px 10px 14px; }
+        @media (max-width: 480px) {
+          .sx-stats-grid { gap: 12px; }
         }
       `}</style>
 
-      {/* ── THREE.JS BACKGROUND ──────────────────────────────────── */}
-      <ThreeBackground phase={phase} warp={phase >= 7} />
+      {/* ── THREE.JS BACKGROUND (fixed, cosmic) ──────────────────────── */}
+      <ThreeBackground phase={bgReady ? 5 : 0} warp={false} />
 
-      {/* ── SPOTLIGHT REVEAL — expanding circle that unveils the scene */}
+      {/* ── VIGNETTE ─────────────────────────────────────────────────── */}
       <div
         style={{
-          position: "fixed",
-          top: "45%",
-          left: "50%",
-          width: "150vmax",
-          height: "150vmax",
-          borderRadius: "50%",
-          background: "transparent",
-          boxShadow: "0 0 80px 9999px #030310",
-          transform: `translate(-50%, -50%) scale(${spotScale})`,
-          transition:
-            phase <= 1
-              ? "transform 0.6s cubic-bezier(0.16,1,0.3,1)"
-              : "transform 1.6s cubic-bezier(0.16,1,0.3,1)",
-          pointerEvents: "none",
-          zIndex: 3,
+          position: "fixed", inset: 0, zIndex: 1, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 25%, transparent 15%, rgba(3,3,16,0.65) 100%)",
         }}
       />
 
-      {/* ── MOUSE SPOTLIGHT — subtle ambient tracking ────────────── */}
+      {/* ── TOP ACCENT LINE ──────────────────────────────────────────── */}
       <div
         style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 4,
-          pointerEvents: "none",
-          background: `radial-gradient(650px circle at ${mouse.x * 100}% ${mouse.y * 100}%, rgba(139,92,246,0.04) 0%, rgba(6,182,212,0.012) 40%, transparent 70%)`,
-          opacity: phase >= 6 && !warping ? 1 : 0,
-          transition: "opacity 1.2s ease",
+          position: "fixed", top: 0, left: 0, right: 0, height: 1, zIndex: 51,
+          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.5) 30%, rgba(6,182,212,0.5) 70%, transparent)",
+          boxShadow: "0 0 18px rgba(139,92,246,0.3)",
         }}
       />
 
-      {/* ── VIGNETTE ─────────────────────────────────────────────── */}
-      <div
+      {/* ── NAV BAR ──────────────────────────────────────────────────── */}
+      <nav
         style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 5,
-          pointerEvents: "none",
-          background:
-            "radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(3,3,16,0.55) 100%)",
-          opacity: phase >= 3 ? 1 : 0,
-          transition: "opacity 1s ease",
-        }}
-      />
-
-      {/* ── TOP ACCENT LINE ──────────────────────────────────────── */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          zIndex: 6,
-          background:
-            "linear-gradient(90deg, transparent, rgba(139,92,246,0.5) 30%, rgba(6,182,212,0.5) 70%, transparent)",
-          boxShadow: "0 0 18px rgba(139,92,246,0.35)",
-          opacity: phase >= 3 ? 1 : 0,
-          transition: "opacity 0.8s ease 0.2s",
-        }}
-      />
-
-      {/* ── BOTTOM ACCENT LINE ───────────────────────────────────── */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          zIndex: 6,
-          background:
-            "linear-gradient(90deg, transparent, rgba(139,92,246,0.3) 30%, rgba(6,182,212,0.3) 70%, transparent)",
-          opacity: phase >= 3 ? 1 : 0,
-          transition: "opacity 0.8s ease 0.4s",
-        }}
-      />
-
-      {/* ── MAIN CONTENT ─────────────────────────────────────────── */}
-      <div
-        className={warping ? "sx-warp-out" : ""}
-        style={{
-          position: "relative",
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100dvh",
-          width: "100%",
-          padding: "32px 20px",
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+          padding: "14px 24px",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          background: scrolled ? "rgba(3,3,16,0.92)" : "transparent",
+          backdropFilter: scrolled ? "blur(20px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
+          borderBottom: scrolled ? "1px solid rgba(139,92,246,0.08)" : "1px solid transparent",
+          transition: "all 0.35s ease",
         }}
       >
-        {/* ── STUDOX wordmark ──────────────────────────────────── */}
-        <div
+        <span style={{ fontWeight: 900, fontSize: 17, letterSpacing: "-0.03em", color: "#e5e7eb" }}>
+          StudoX
+        </span>
+        <a
+          href={CORE_URL}
           style={{
-            marginBottom: 8,
+            padding: "7px 18px", borderRadius: 9,
+            background: "rgba(139,92,246,0.1)",
+            border: "1px solid rgba(139,92,246,0.2)",
+            fontSize: 12, fontWeight: 700, color: "#c4b5fd",
+            letterSpacing: "0.01em",
+            transition: "all 0.25s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(139,92,246,0.2)";
+            e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(139,92,246,0.1)";
+            e.currentTarget.style.borderColor = "rgba(139,92,246,0.2)";
+          }}
+        >
+          Ins System &rarr;
+        </a>
+      </nav>
+
+      {/* ── SCROLLABLE CONTENT ───────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 10 }}>
+
+        {/* ════════════════════════════════════════════════════════════
+            HERO — Full viewport, transparent over Three.js
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            minHeight: "100vh",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
             textAlign: "center",
-            animation:
-              phase >= 5
-                ? "sx-breathe 4.5s ease-in-out infinite"
-                : "none",
+            padding: "80px 24px 60px",
+            position: "relative",
           }}
         >
-          {"STUDOX".split("").map((ch, i) => (
-            <span
-              key={i}
-              className={phase >= 4 ? "sx-shimmer" : ""}
-              style={{
-                display: "inline-block",
-                fontSize: "clamp(44px, 9vw, 76px)",
-                fontWeight: 900,
-                letterSpacing: "-0.05em",
-                lineHeight: 1,
-                opacity: phase >= 3 ? 1 : 0,
-                animation:
-                  phase >= 3
-                    ? `sx-glitch-in 0.55s cubic-bezier(0.16,1,0.3,1) ${i * 65 + 80}ms both`
-                    : "none",
-                color: "#fff",
-              }}
-            >
-              {ch}
-            </span>
-          ))}
-        </div>
-
-        {/* ── Tagline ──────────────────────────────────────────── */}
-        <p
-          style={{
-            fontSize: "clamp(12px, 2.6vw, 16px)",
-            fontWeight: 500,
-            color: "rgba(196,181,253,0.55)",
-            marginBottom: 44,
-            textAlign: "center",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            opacity: phase >= 4 ? 1 : 0,
-            transform: phase >= 4 ? "translateY(0)" : "translateY(14px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-          }}
-        >
-          Wähle deine Welt
-        </p>
-
-        {/* ── Portal grid ──────────────────────────────────────── */}
-        <div className="sx-grid" style={{ marginBottom: 40 }}>
-          {WORLDS.map((w, i) => (
-            <PortalCard
-              key={w.id}
-              world={w}
-              visible={phase >= 5}
-              delay={i * 100}
-              onSelect={selectWorld}
-              warping={warping}
-            />
-          ))}
-        </div>
-
-        {/* ── Status + footer ──────────────────────────────────── */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 14,
-            opacity: phase >= 6 ? 1 : 0,
-            transition: "opacity 0.8s ease 0.5s",
-          }}
-        >
-          {/* Live pulse */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: "50%",
-                background: "#10b981",
-                boxShadow: "0 0 8px #10b981",
-                animation: "sx-breathe 2s ease-in-out infinite",
-              }}
-            />
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "rgba(52,211,153,0.55)",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              System Live
+          {/* Badge */}
+          <div
+            className="hero-badge"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 16px", borderRadius: 100, marginBottom: 28,
+              background: "rgba(139,92,246,0.08)",
+              border: "1px solid rgba(139,92,246,0.2)",
+            }}
+          >
+            <div style={{
+              width: 6, height: 6, borderRadius: "50%",
+              background: "#10b981",
+              animation: "sx-pulse 2s ease-in-out infinite",
+            }} />
+            <span style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "rgba(196,181,253,0.8)",
+            }}>
+              Das nächste Kapitel
             </span>
           </div>
 
-          {/* Links */}
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            {[
-              { label: "studox.info", href: "https://studox.info" },
-              { label: "studox.org", href: "https://studox.org" },
-            ].map(({ label, href }) => (
+          {/* Headline */}
+          <h1
+            className="hero-title sx-grad"
+            style={{
+              fontSize: "clamp(36px, 8vw, 72px)",
+              fontWeight: 900,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.08,
+              marginBottom: 20,
+              maxWidth: 700,
+            }}
+          >
+            Vergiss alles, was du
+            <br />
+            über Lernen weißt.
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            className="hero-sub"
+            style={{
+              fontSize: "clamp(15px, 2.5vw, 19px)",
+              fontWeight: 400,
+              color: "rgba(196,181,253,0.55)",
+              lineHeight: 1.6,
+              maxWidth: 440,
+              marginBottom: 36,
+            }}
+          >
+            Ein Ökosystem das Regeln bricht.
+            <br />
+            Bereit?
+          </p>
+
+          {/* CTA */}
+          <a
+            className="hero-cta"
+            href={CORE_URL}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "15px 34px", borderRadius: 13,
+              background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+              color: "#fff", fontSize: 15, fontWeight: 800,
+              letterSpacing: "-0.01em",
+              boxShadow: "0 8px 32px rgba(139,92,246,0.3), 0 0 0 1px rgba(139,92,246,0.3)",
+              transition: "transform 0.25s ease, box-shadow 0.25s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 14px 44px rgba(139,92,246,0.4), 0 0 0 1px rgba(139,92,246,0.4)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "";
+              e.currentTarget.style.boxShadow = "0 8px 32px rgba(139,92,246,0.3), 0 0 0 1px rgba(139,92,246,0.3)";
+            }}
+          >
+            Jetzt erleben
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+
+          {/* Scroll indicator */}
+          <div
+            className="hero-scroll"
+            style={{
+              position: "absolute", bottom: 32, left: "50%",
+              transform: "translateX(-50%)",
+              animation: "sx-bounce 2.5s ease-in-out infinite",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.35)" strokeWidth="2" strokeLinecap="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        </section>
+
+        {/* ── Gradient transition to dark ─────────────────────────── */}
+        <div style={{ height: 200, background: "linear-gradient(to bottom, transparent, #030310)" }} />
+
+        {/* ════════════════════════════════════════════════════════════
+            STATEMENT — One powerful paragraph
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            background: "#030310",
+            padding: "clamp(80px, 12vh, 140px) 24px",
+            display: "flex", justifyContent: "center",
+          }}
+        >
+          <p
+            className="sx-reveal"
+            style={{
+              fontSize: "clamp(20px, 3.5vw, 32px)",
+              fontWeight: 500,
+              lineHeight: 1.55,
+              color: "rgba(229,231,235,0.75)",
+              maxWidth: 640,
+              textAlign: "center",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Wir haben nicht ein weiteres Tool gebaut.
+            <br />
+            <span style={{ color: "rgba(196,181,253,0.9)", fontWeight: 600 }}>
+              Wir haben ein Universum erschaffen,
+            </span>
+            <br />
+            in dem Lernen keine Pflicht mehr ist
+            {" — "}
+            <span style={{ color: "rgba(103,232,249,0.8)" }}>
+              sondern ein Instinkt.
+            </span>
+          </p>
+        </section>
+
+        {/* ── Divider ─────────────────────────────────────────────── */}
+        <div style={{
+          width: 60, height: 1, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.25), transparent)",
+        }} />
+
+        {/* ════════════════════════════════════════════════════════════
+            ECOSYSTEM — Mysterious tease, not explanation
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            background: "#030310",
+            padding: "clamp(80px, 12vh, 140px) 24px",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            textAlign: "center",
+          }}
+        >
+          {/* Section badge */}
+          <div
+            className="sx-reveal"
+            style={{
+              display: "inline-flex", padding: "5px 14px", borderRadius: 100,
+              background: "rgba(139,92,246,0.06)",
+              border: "1px solid rgba(139,92,246,0.15)",
+              fontSize: 10, fontWeight: 700, color: "rgba(196,181,253,0.6)",
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              marginBottom: 24,
+            }}
+          >
+            Ökosystem
+          </div>
+
+          <h2
+            className="sx-reveal sx-d1"
+            style={{
+              fontSize: "clamp(28px, 5.5vw, 48px)",
+              fontWeight: 900,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+              marginBottom: 14,
+            }}
+          >
+            Sechs Welten.
+            <br />
+            <span className="sx-grad">Ein System.</span>
+          </h2>
+
+          <p
+            className="sx-reveal sx-d2"
+            style={{
+              fontSize: "clamp(14px, 2vw, 16px)",
+              color: "rgba(156,163,175,0.55)",
+              marginBottom: 48,
+              maxWidth: 400,
+              lineHeight: 1.5,
+            }}
+          >
+            Jede Welt hat ihre eigene Kraft.
+            <br />
+            Zusammen sind sie unaufhaltbar.
+          </p>
+
+          {/* Worlds grid */}
+          <div className="sx-worlds-grid" style={{ marginBottom: 40 }}>
+            {WORLDS.map((w, i) => (
               <a
-                key={label}
-                href={href}
+                key={w.id}
+                href={w.url}
+                className={`sx-reveal sx-d${i + 1}`}
                 style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#374151",
-                  letterSpacing: "0.03em",
-                  transition: "color 0.2s",
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "14px 16px", borderRadius: 13,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  transition: "all 0.3s ease",
                 }}
-                onMouseEnter={(e) => (e.target.style.color = "#9ca3af")}
-                onMouseLeave={(e) => (e.target.style.color = "#374151")}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `rgba(${w.rgb},0.3)`;
+                  e.currentTarget.style.background = `rgba(${w.rgb},0.06)`;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                  e.currentTarget.style.transform = "";
+                }}
               >
-                {label}
+                <div style={{
+                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                  background: w.color,
+                  boxShadow: `0 0 10px ${w.color}`,
+                }} />
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb" }}>
+                    {w.name}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(156,163,175,0.5)" }}>
+                    {w.tag}
+                  </div>
+                </div>
               </a>
             ))}
-            <span style={{ color: "#1f2937", fontSize: 10 }}>© 2026 StudoX</span>
           </div>
-        </div>
-      </div>
 
-      {/* ── LOGIN GATE ───────────────────────────────────────────── */}
-      {gate && (
-        <LoginGate
-          world={gate}
-          onSkip={() => doWarp(gate)}
-          onClose={() => setGate(null)}
-        />
-      )}
+          <p
+            className="sx-reveal"
+            style={{
+              fontSize: 13, fontWeight: 500, fontStyle: "italic",
+              color: "rgba(156,163,175,0.35)", letterSpacing: "0.02em",
+            }}
+          >
+            Das ist erst der Anfang.
+          </p>
+        </section>
 
-      {/* ── WARP OVERLAY ─────────────────────────────────────────── */}
-      {warping && (
-        <div
+        {/* ── Divider ─────────────────────────────────────────────── */}
+        <div style={{
+          width: 60, height: 1, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(6,182,212,0.2), transparent)",
+        }} />
+
+        {/* ════════════════════════════════════════════════════════════
+            QUALITIES — Three powerful statements
+            ════════════════════════════════════════════════════════════ */}
+        <section
           style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 300,
-            pointerEvents: "none",
+            background: "#030310",
+            padding: "clamp(80px, 10vh, 120px) 24px",
           }}
         >
-          {/* Radial color burst */}
-          <div
+          <div style={{ maxWidth: 560, margin: "0 auto" }}>
+            {QUALITIES.map((q, i) => (
+              <div
+                key={i}
+                className="sx-reveal"
+                style={{
+                  textAlign: "center",
+                  marginBottom: i < QUALITIES.length - 1 ? "clamp(64px, 10vh, 100px)" : 0,
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "clamp(22px, 4vw, 32px)",
+                    fontWeight: 900,
+                    letterSpacing: "-0.03em",
+                    lineHeight: 1.15,
+                    marginBottom: 14,
+                    color: "#f0eef5",
+                  }}
+                >
+                  {q.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: "clamp(14px, 2vw, 16px)",
+                    fontWeight: 400,
+                    color: "rgba(156,163,175,0.55)",
+                    lineHeight: 1.6,
+                    maxWidth: 440,
+                    margin: "0 auto",
+                  }}
+                >
+                  {q.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Divider ─────────────────────────────────────────────── */}
+        <div style={{
+          width: 60, height: 1, margin: "0 auto",
+          background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.2), transparent)",
+        }} />
+
+        {/* ════════════════════════════════════════════════════════════
+            STATS — Three big numbers
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            background: "#030310",
+            padding: "clamp(80px, 12vh, 140px) 24px",
+            display: "flex", justifyContent: "center",
+          }}
+        >
+          <div className="sx-stats-grid">
+            {STATS.map((s, i) => (
+              <div
+                key={i}
+                className={`sx-reveal sx-d${i + 1}`}
+                style={{ textAlign: "center" }}
+              >
+                <div
+                  className="sx-grad"
+                  style={{
+                    fontSize: "clamp(36px, 7vw, 56px)",
+                    fontWeight: 900,
+                    letterSpacing: "-0.04em",
+                    lineHeight: 1,
+                    marginBottom: 8,
+                  }}
+                >
+                  {s.value}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11, fontWeight: 600,
+                    color: "rgba(156,163,175,0.45)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════
+            FINAL CTA — The closer
+            ════════════════════════════════════════════════════════════ */}
+        <section
+          style={{
+            background: "#030310",
+            padding: "clamp(80px, 14vh, 160px) 24px clamp(60px, 10vh, 120px)",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            textAlign: "center",
+          }}
+        >
+          <h2
+            className="sx-reveal"
             style={{
-              position: "absolute",
-              inset: "-50%",
-              background: `radial-gradient(circle at 50% 50%, rgba(${warping.rgb},0.4) 0%, transparent 55%)`,
-              animation: "sx-warp-glow 1.4s ease-in forwards",
+              fontSize: "clamp(26px, 5vw, 44px)",
+              fontWeight: 900,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.15,
+              marginBottom: 36,
+              maxWidth: 520,
+              color: "#f0eef5",
             }}
-          />
-          {/* White flash */}
+          >
+            Die Zukunft der Bildung
+            <br />
+            ist kein Versprechen.
+            <br />
+            <span className="sx-grad">Sie ist online.</span>
+          </h2>
+
           <div
+            className="sx-reveal sx-d1"
             style={{
-              position: "absolute",
-              inset: 0,
-              background: "#fff",
-              animation: "sx-warp-flash 1.4s ease-in forwards",
+              display: "flex", alignItems: "center", gap: 14,
+              flexWrap: "wrap", justifyContent: "center",
             }}
-          />
-        </div>
-      )}
+          >
+            {/* Primary CTA */}
+            <a
+              href={CORE_URL}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 30px", borderRadius: 13,
+                background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+                color: "#fff", fontSize: 15, fontWeight: 800,
+                boxShadow: "0 8px 32px rgba(139,92,246,0.3)",
+                transition: "transform 0.25s, box-shadow 0.25s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 14px 44px rgba(139,92,246,0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "";
+                e.currentTarget.style.boxShadow = "0 8px 32px rgba(139,92,246,0.3)";
+              }}
+            >
+              Ins System
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+
+            {/* Secondary CTA */}
+            <a
+              href={INFO_URL}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "14px 26px", borderRadius: 13,
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#9ca3af", fontSize: 14, fontWeight: 600,
+                transition: "all 0.25s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+                e.currentTarget.style.color = "#d1d5db";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                e.currentTarget.style.color = "#9ca3af";
+              }}
+            >
+              Mehr erfahren
+            </a>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════════
+            FOOTER
+            ════════════════════════════════════════════════════════════ */}
+        <footer
+          style={{
+            background: "#030310",
+            borderTop: "1px solid rgba(255,255,255,0.04)",
+            padding: "32px 24px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 20, flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontSize: 12, fontWeight: 800, color: "#374151", letterSpacing: "-0.02em" }}>
+            StudoX
+          </span>
+          {[
+            { label: "studox.info", href: INFO_URL },
+            { label: "studox.org", href: "https://studox.org" },
+          ].map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              style={{
+                fontSize: 11, fontWeight: 600, color: "#374151",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => (e.target.style.color = "#9ca3af")}
+              onMouseLeave={(e) => (e.target.style.color = "#374151")}
+            >
+              {label}
+            </a>
+          ))}
+          <span style={{ fontSize: 10, color: "#1f2937" }}>
+            © 2026 StudoX. Made in Europe.
+          </span>
+        </footer>
+      </div>
     </div>
   );
 }
